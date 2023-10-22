@@ -24,17 +24,21 @@ class Model:
 
         for c in classes:
             mask = self.dataset[class_column] == c
+            
             set = self.dataset[mask]
             
+            
+            
             # Randomize each set
-            shuffled_set = set.sample(frac = 1).reset_index(drop=True)
-
+            shuffled_set = set.sample(frac = 1)
+            
             # Set tresholds
             BOTTOM = 0
             TOP = math.floor(len(shuffled_set) * self.training_percentage)
 
             # Retrieve data
             training_part = shuffled_set.iloc[BOTTOM:TOP]
+            
             test_part = shuffled_set.iloc[TOP:len(shuffled_set)]
             
             # Append data to its corresponding part
@@ -43,6 +47,9 @@ class Model:
 
         training_set = training_set.sample(frac = 1)
         test_set = test_set.sample(frac = 1)
+        
+        self.create_csv(training_set, "training_set.csv")
+        self.create_csv(test_set, "test_set.csv")
         return training_set, test_set
 
 
@@ -74,6 +81,10 @@ class Model:
         accuracy = clf.score(test_set[test_attributes], test_set[test_class_attribute])
 
         return accuracy
+
+    
+    def create_csv(self, frame, name):
+        frame.to_csv(name, index=False)
 
 
     def cross_validate(self, training_set, n_folds, hyperparameters):
@@ -123,13 +134,9 @@ class Model:
         print(f'---------------------')
 
 # Load iris database
-iris = datasets.load_iris()
+df = pd.read_csv("irisAumentedData.csv")
 
-# Convert the iris dataset to a pandas dataframe
-df = pd.DataFrame(iris.data, columns=iris.feature_names)
 
-# Add the target variable to the dataframe
-df['target'] = iris.target
 
 # Create the model
 model = Model(df, 0.7)
@@ -139,7 +146,7 @@ training_set, test_set = model.define_training_test()
 
 # Define the hyperparameters
 # EPOCHS / HIDDEN LAYERS / NEURONS / LEARNING RATE / MOMEMTUM
-hpms = [200, (3, 3, 3), 0.3, 0.2]
+hpms = [20, (3), 0.3, 0.2]
 
 # Cross validate the model
 model.cross_validate(training_set=training_set, n_folds=3, hyperparameters=hpms)
